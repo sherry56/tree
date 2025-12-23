@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>罗玥生日快乐</title>
+    <style>
+        body {
+            background-color: #fdf6f6; /* 柔和的背景色 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Microsoft YaHei', sans-serif;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* 图片样式 */
+        .item-img {
+            width: 150px;
+            height: auto;
+            border-radius: 10px;
+            transition: transform 0.3s;
+        }
+
+        .item-img:hover {
+            transform: scale(1.05);
+        }
+
+        /* 符号样式 (+ 和 =) */
+        .symbol {
+            font-size: 40px;
+            color: #ff8e8e;
+            font-weight: bold;
+        }
+
+        /* 互动区域容器 */
+        .result-area {
+            position: relative;
+            width: 200px;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 点击前的按钮/礼盒 */
+        #mystery-box {
+            font-size: 50px;
+            cursor: pointer;
+            animation: bounce 2s infinite;
+            background: #ffecd2;
+            padding: 10px 20px;
+            border-radius: 15px;
+            border: 2px dashed #ffb7b2;
+            user-select: none;
+        }
+
+        #mystery-box:hover {
+            background: #ffdfba;
+        }
+
+        /* 隐藏的文字结果 */
+        #final-text {
+            display: none; /* 初始隐藏 */
+            font-size: 28px;
+            font-weight: bold;
+            color: #ff5e5e;
+            animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* 动画定义 */
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.5); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* 简单的彩带粒子 */
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            animation: fall linear forwards;
+        }
+
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(720deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <img src="tree.jpg" alt="圣诞树" class="item-img">
+        
+        <div class="symbol">+</div>
+        
+        <img src="jiyi.jpg" alt="吉伊" class="item-img">
+        
+        <div class="symbol">=</div>
+        
+        <div class="result-area">
+            <div id="mystery-box" onclick="revealSurprise()">🎁 点击揭晓</div>
+            <div id="final-text">✨ 罗玥生日快乐! ✨</div>
+        </div>
+    </div>
+
+    <script>
+        function revealSurprise() {
+            const box = document.getElementById('mystery-box');
+            const text = document.getElementById('final-text');
+
+            // 1. 隐藏盒子
+            box.style.display = 'none';
+            
+            // 2. 显示文字
+            text.style.display = 'block';
+
+            // 3. 触发撒花特效
+            createConfetti();
+        }
+
+        function createConfetti() {
+            const colors = ['#ff5e5e', '#ffc107', '#4caf50', '#2196f3', '#9c27b0'];
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+                
+                // 随机颜色
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                
+                // 随机位置
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.top = -10 + 'px';
+                
+                // 随机大小和速度
+                const size = Math.random() * 10 + 5 + 'px';
+                confetti.style.width = size;
+                confetti.style.height = size;
+                confetti.style.animationDuration = Math.random() * 3 + 2 + 's';
+                
+                document.body.appendChild(confetti);
+
+                // 动画结束后移除元素
+                setTimeout(() => {
+                    confetti.remove();
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>
