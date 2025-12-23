@@ -2,171 +2,317 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>罗玥生日快乐</title>
     <style>
         body {
-            background-color: #fdf6f6; /* 柔和的背景色 */
+            background-color: #1a1a2e;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
             font-family: 'Microsoft YaHei', sans-serif;
-            overflow: hidden;
+            overflow: hidden; /* 禁止滚动 */
+            color: white;
         }
 
         .container {
+            position: relative;
+            z-index: 10;
             text-align: center;
-            background: white;
-            padding: 40px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px 20px;
+            width: 85%;
+            max-width: 400px;
             border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            box-shadow: 0 0 30px rgba(255,255,255,0.2);
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 20px;
-            flex-wrap: wrap;
-            justify-content: center;
+            gap: 15px;
+            transition: all 0.5s ease;
         }
 
         /* 图片样式 */
         .item-img {
-            width: 150px;
+            width: 100px; /* 图片稍微调小，给视频腾位置 */
             height: auto;
             border-radius: 10px;
-            transition: transform 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
-        .item-img:hover {
-            transform: scale(1.05);
-        }
-
-        /* 符号样式 (+ 和 =) */
         .symbol {
-            font-size: 40px;
-            color: #ff8e8e;
-            font-weight: bold;
-        }
-
-        /* 互动区域容器 */
-        .result-area {
-            position: relative;
-            width: 200px;
-            height: 100px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        /* 点击前的按钮/礼盒 */
-        #mystery-box {
-            font-size: 50px;
-            cursor: pointer;
-            animation: bounce 2s infinite;
-            background: #ffecd2;
-            padding: 10px 20px;
-            border-radius: 15px;
-            border: 2px dashed #ffb7b2;
-            user-select: none;
-        }
-
-        #mystery-box:hover {
-            background: #ffdfba;
-        }
-
-        /* 隐藏的文字结果 */
-        #final-text {
-            display: none; /* 初始隐藏 */
-            font-size: 28px;
-            font-weight: bold;
+            font-size: 24px;
             color: #ff5e5e;
-            animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            font-weight: bold;
+            line-height: 1;
         }
 
-        /* 动画定义 */
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+        /* 等式部分容器，用于点击后隐藏/变小 */
+        .equation-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            transition: opacity 0.5s;
         }
 
-        @keyframes popIn {
-            0% { opacity: 0; transform: scale(0.5); }
-            100% { opacity: 1; transform: scale(1); }
+        /* 按钮/礼盒 */
+        #mystery-box {
+            font-size: 20px;
+            cursor: pointer;
+            animation: pulse 1.5s infinite;
+            background: linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%);
+            padding: 12px 35px;
+            border-radius: 50px;
+            border: none;
+            box-shadow: 0 5px 15px rgba(255, 100, 100, 0.4);
+            color: white;
+            font-weight: bold;
+            user-select: none;
+            margin-top: 10px;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* 简单的彩带粒子 */
-        .confetti {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background-color: #f00;
-            animation: fall linear forwards;
+        /* 视频容器 */
+        #video-container {
+            display: none; /* 初始隐藏 */
+            width: 100%;
+            margin-top: 10px;
+            animation: expand 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
         }
 
-        @keyframes fall {
-            to { transform: translateY(100vh) rotate(720deg); }
+        /* 视频本身 */
+        video {
+            width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: block;
+        }
+
+        /* 简单的文字标题 */
+        .video-title {
+            font-size: 18px;
+            color: #ff4757;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        /* 烟花画布 */
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 154, 158, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 154, 158, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 154, 158, 0); }
+        }
+
+        @keyframes expand {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <img src="tree.jpg" alt="圣诞树" class="item-img">
+    <canvas id="canvas"></canvas>
+
+    <div class="container" id="main-card">
         
-        <div class="symbol">+</div>
-        
-        <img src="jiyi.jpg" alt="吉伊" class="item-img">
-        
-        <div class="symbol">=</div>
-        
-        <div class="result-area">
-            <div id="mystery-box" onclick="revealSurprise()">🎁 点击揭晓</div>
-            <div id="final-text">✨ 罗玥生日快乐! ✨</div>
+        <div class="equation-group" id="equation-part">
+            <img src="tree.jpg" alt="圣诞树" class="item-img">
+            <div class="symbol">+</div>
+            <img src="jiyi.jpg" alt="可爱小熊" class="item-img">
+            <div class="symbol">=</div>
+            
+            <button id="mystery-box" onclick="startCelebration()">🎁 点我揭晓</button>
         </div>
+
+        <div id="video-container">
+            <div class="video-title">🎉 罗玥生日快乐! 🎉</div>
+            <video id="birthday-video" src="happy.mp4" controls playsinline></video>
+        </div>
+
     </div>
 
     <script>
-        function revealSurprise() {
-            const box = document.getElementById('mystery-box');
-            const text = document.getElementById('final-text');
+        // --- 核心逻辑 ---
+        function startCelebration() {
+            const equationPart = document.getElementById('equation-part');
+            const mysteryBox = document.getElementById('mystery-box');
+            const videoContainer = document.getElementById('video-container');
+            const video = document.getElementById('birthday-video');
 
-            // 1. 隐藏盒子
-            box.style.display = 'none';
-            
-            // 2. 显示文字
-            text.style.display = 'block';
+            // 1. 隐藏原来的等式和按钮 (或者你可以选择不隐藏，只隐藏按钮)
+            // 这里我选择隐藏按钮，保留图片但缩小一点，或者直接替换。
+            // 方案：隐藏整个等式部分，只展示视频，这样视线最集中。
+            equationPart.style.display = 'none';
 
-            // 3. 触发撒花特效
-            createConfetti();
+            // 2. 显示视频区域
+            videoContainer.style.display = 'block';
+
+            // 3. 播放视频
+            video.play().catch(e => {
+                console.log("浏览器阻止自动播放，需要用户手动点击播放按钮", e);
+            });
+
+            // 4. 开始放烟花
+            initFireworks();
+            loop();
         }
 
-        function createConfetti() {
-            const colors = ['#ff5e5e', '#ffc107', '#4caf50', '#2196f3', '#9c27b0'];
-            
-            for (let i = 0; i < 50; i++) {
-                const confetti = document.createElement('div');
-                confetti.classList.add('confetti');
-                
-                // 随机颜色
-                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                
-                // 随机位置
-                confetti.style.left = Math.random() * 100 + 'vw';
-                confetti.style.top = -10 + 'px';
-                
-                // 随机大小和速度
-                const size = Math.random() * 10 + 5 + 'px';
-                confetti.style.width = size;
-                confetti.style.height = size;
-                confetti.style.animationDuration = Math.random() * 3 + 2 + 's';
-                
-                document.body.appendChild(confetti);
+        // --- 烟花特效 (保持不变) ---
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let fireworks = [];
+        let particles = [];
 
-                // 动画结束后移除元素
-                setTimeout(() => {
-                    confetti.remove();
-                }, 5000);
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        function random(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        class Firework {
+            constructor(x, y, targetX, targetY) {
+                this.x = x;
+                this.y = y;
+                this.startX = x;
+                this.startY = y;
+                this.targetX = targetX;
+                this.targetY = targetY;
+                this.distanceToTarget = Math.sqrt(Math.pow(targetX - x, 2) + Math.pow(targetY - y, 2));
+                this.distanceTraveled = 0;
+                this.coordinates = [];
+                this.coordinateCount = 3;
+                while (this.coordinateCount--) {
+                    this.coordinates.push([this.x, this.y]);
+                }
+                this.angle = Math.atan2(targetY - y, targetX - x);
+                this.speed = 2;
+                this.acceleration = 1.05;
+                this.brightness = random(50, 70);
+            }
+            update(index) {
+                this.coordinates.pop();
+                this.coordinates.unshift([this.x, this.y]);
+                this.speed *= this.acceleration;
+                const vx = Math.cos(this.angle) * this.speed;
+                const vy = Math.sin(this.angle) * this.speed;
+                this.distanceTraveled = Math.sqrt(Math.pow(this.x - this.startX, 2) + Math.pow(this.y - this.startY, 2));
+                if (this.distanceTraveled >= this.distanceToTarget) {
+                    createParticles(this.targetX, this.targetY);
+                    fireworks.splice(index, 1);
+                } else {
+                    this.x += vx;
+                    this.y += vy;
+                }
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.moveTo(this.coordinates[this.coordinates.length - 1][0], this.coordinates[this.coordinates.length - 1][1]);
+                ctx.lineTo(this.x, this.y);
+                ctx.strokeStyle = 'hsl(' + hue + ', 100%, ' + this.brightness + '%)';
+                ctx.stroke();
+            }
+        }
+
+        class Particle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.coordinates = [];
+                this.coordinateCount = 5;
+                while (this.coordinateCount--) {
+                    this.coordinates.push([this.x, this.y]);
+                }
+                this.angle = random(0, Math.PI * 2);
+                this.speed = random(1, 10);
+                this.friction = 0.95;
+                this.gravity = 1;
+                this.hue = random(hue - 20, hue + 20);
+                this.brightness = random(50, 80);
+                this.alpha = 1;
+                this.decay = random(0.015, 0.03);
+            }
+            update(index) {
+                this.coordinates.pop();
+                this.coordinates.unshift([this.x, this.y]);
+                this.speed *= this.friction;
+                this.x += Math.cos(this.angle) * this.speed;
+                this.y += Math.sin(this.angle) * this.speed + this.gravity;
+                this.alpha -= this.decay;
+                if (this.alpha <= this.decay) {
+                    particles.splice(index, 1);
+                }
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.moveTo(this.coordinates[this.coordinates.length - 1][0], this.coordinates[this.coordinates.length - 1][1]);
+                ctx.lineTo(this.x, this.y);
+                ctx.strokeStyle = 'hsla(' + this.hue + ', 100%, ' + this.brightness + '%, ' + this.alpha + ')';
+                ctx.stroke();
+            }
+        }
+
+        let hue = 120;
+        let timerTotal = 40; 
+        let timerTick = 0;
+        let isCelebrating = false;
+
+        function initFireworks() {
+            isCelebrating = true;
+        }
+
+        function createParticles(x, y) {
+            let particleCount = 50; 
+            while (particleCount--) {
+                particles.push(new Particle(x, y));
+            }
+        }
+
+        function loop() {
+            if (!isCelebrating) return;
+            requestAnimationFrame(loop);
+            hue += 0.5;
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillRect(0, 0, width, height);
+            ctx.globalCompositeOperation = 'lighter';
+
+            let i = fireworks.length;
+            while (i--) {
+                fireworks[i].draw();
+                fireworks[i].update(i);
+            }
+
+            let j = particles.length;
+            while (j--) {
+                particles[j].draw();
+                particles[j].update(j);
+            }
+
+            if (timerTick >= timerTotal) {
+                fireworks.push(new Firework(width / 2, height, random(0, width), random(0, height / 2)));
+                timerTick = 0;
+            } else {
+                timerTick++;
             }
         }
     </script>
