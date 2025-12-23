@@ -36,7 +36,7 @@
 
         /* 图片样式 */
         .item-img {
-            width: 100px; /* 图片稍微调小，给视频腾位置 */
+            width: 100px;
             height: auto;
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
@@ -49,7 +49,7 @@
             line-height: 1;
         }
 
-        /* 等式部分容器，用于点击后隐藏/变小 */
+        /* 等式部分容器 */
         .equation-group {
             display: flex;
             flex-direction: column;
@@ -78,13 +78,12 @@
 
         /* 视频容器 */
         #video-container {
-            display: none; /* 初始隐藏 */
+            display: none;
             width: 100%;
             margin-top: 10px;
             animation: expand 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
         }
 
-        /* 视频本身 */
         video {
             width: 100%;
             border-radius: 10px;
@@ -92,7 +91,6 @@
             display: block;
         }
 
-        /* 简单的文字标题 */
         .video-title {
             font-size: 18px;
             color: #ff4757;
@@ -149,13 +147,10 @@
         // --- 核心逻辑 ---
         function startCelebration() {
             const equationPart = document.getElementById('equation-part');
-            const mysteryBox = document.getElementById('mystery-box');
             const videoContainer = document.getElementById('video-container');
-            const video = document.getElementById('birthday-video');
+            const video = document.getElementById('suprise-video'); // 修正ID引用
 
-            // 1. 隐藏原来的等式和按钮 (或者你可以选择不隐藏，只隐藏按钮)
-            // 这里我选择隐藏按钮，保留图片但缩小一点，或者直接替换。
-            // 方案：隐藏整个等式部分，只展示视频，这样视线最集中。
+            // 1. 隐藏等式
             equationPart.style.display = 'none';
 
             // 2. 显示视频区域
@@ -163,21 +158,22 @@
 
             // 3. 播放视频
             video.play().catch(e => {
-                console.log("浏览器阻止自动播放，需要用户手动点击播放按钮", e);
+                console.log("需手动播放", e);
             });
 
-            // 4. 开始放烟花
-            initFireworks();
-            loop();
+            // 4. 开始放烟花和彩带
+            initCelebration();
         }
 
-        // --- 烟花特效 (保持不变) ---
+        // --- 绘图与特效逻辑 ---
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         let width, height;
         let fireworks = [];
         let particles = [];
+        let confettis = []; // 新增彩带数组
 
+        // 调整尺寸
         function resize() {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
@@ -185,10 +181,12 @@
         window.addEventListener('resize', resize);
         resize();
 
+        // 辅助函数：随机数
         function random(min, max) {
             return Math.random() * (max - min) + min;
         }
 
+        // --- 类定义：烟花 (Firework) ---
         class Firework {
             constructor(x, y, targetX, targetY) {
                 this.x = x;
@@ -216,6 +214,7 @@
                 const vx = Math.cos(this.angle) * this.speed;
                 const vy = Math.sin(this.angle) * this.speed;
                 this.distanceTraveled = Math.sqrt(Math.pow(this.x - this.startX, 2) + Math.pow(this.y - this.startY, 2));
+                
                 if (this.distanceTraveled >= this.distanceToTarget) {
                     createParticles(this.targetX, this.targetY);
                     fireworks.splice(index, 1);
@@ -233,6 +232,7 @@
             }
         }
 
+        // --- 类定义：烟花粒子 (Particle) ---
         class Particle {
             constructor(x, y) {
                 this.x = x;
@@ -271,17 +271,59 @@
             }
         }
 
+        // --- 类定义：彩带/碎屑 (Confetti) [新增] ---
+        class Confetti {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height - height; // 从屏幕上方不同位置落下
+                this.color = `hsl(${Math.random() * 360}, 100%, 60%)`;
+                this.size = Math.random() * 10 + 5;
+                this.speedY = Math.random() * 3 + 1; // 下落速度
+                this.speedX = Math.random() * 2 - 1; // 水平飘动
+                this.rotation = Math.random() * 360;
+                this.rotationSpeed = Math.random() * 10 - 5;
+            }
+
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                this.rotation += this.rotationSpeed;
+
+                // 简单的重置逻辑，循环下落
+                if (this.y > height) {
+                    this.y = -10;
+                    this.x = Math.random() * width;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation * Math.PI / 180);
+                ctx.fillStyle = this.color;
+                // 绘制一个小矩形作为彩带
+                ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size * 0.4); 
+                ctx.restore();
+            }
+        }
+
+        // --- 动画控制 ---
         let hue = 120;
-        let timerTotal = 40; 
+        let timerTotal = 30; // 调小数值让烟花更密集
         let timerTick = 0;
         let isCelebrating = false;
 
-        function initFireworks() {
+        function initCelebration() {
             isCelebrating = true;
+            // 初始化生成50个彩带
+            for(let i=0; i<50; i++) {
+                confettis.push(new Confetti());
+            }
+            loop();
         }
 
         function createParticles(x, y) {
-            let particleCount = 50; 
+            let particleCount = 60; 
             while (particleCount--) {
                 particles.push(new Particle(x, y));
             }
@@ -289,26 +331,44 @@
 
         function loop() {
             if (!isCelebrating) return;
+            
             requestAnimationFrame(loop);
+            
             hue += 0.5;
+
+            // 制造拖尾效果 (对烟花有效，对彩带会有轻微动态模糊)
             ctx.globalCompositeOperation = 'destination-out';
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'; // 透明度越低拖尾越长
             ctx.fillRect(0, 0, width, height);
+            
+            // 恢复绘图模式
             ctx.globalCompositeOperation = 'lighter';
 
+            // 1. 绘制烟花
             let i = fireworks.length;
             while (i--) {
                 fireworks[i].draw();
                 fireworks[i].update(i);
             }
 
+            // 2. 绘制爆炸粒子
             let j = particles.length;
             while (j--) {
                 particles[j].draw();
                 particles[j].update(j);
             }
 
+            // 3. 绘制彩带 (使用 source-over 模式，避免彩带太亮看不清颜色)
+            ctx.globalCompositeOperation = 'source-over';
+            let k = confettis.length;
+            while (k--) {
+                confettis[k].draw();
+                confettis[k].update();
+            }
+
+            // 定时发射新烟花
             if (timerTick >= timerTotal) {
+                // 随机发射点，目标是屏幕上半部分
                 fireworks.push(new Firework(width / 2, height, random(0, width), random(0, height / 2)));
                 timerTick = 0;
             } else {
@@ -318,5 +378,3 @@
     </script>
 </body>
 </html>
-
-
